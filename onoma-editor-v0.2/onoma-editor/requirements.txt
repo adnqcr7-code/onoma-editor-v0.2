@@ -1,0 +1,27 @@
+# Onoma Editor — Python dependencies
+#
+# Install with:
+#   pip install -r requirements.txt --break-system-packages
+#
+# System dependencies (NOT installed by pip, install separately):
+#   - ffmpeg (must be on PATH) — https://ffmpeg.org/download.html
+#   - Ollama (running locally) — https://ollama.com
+#     then: ollama pull gemma3:12b  (see config.py for 4b/12b/27b tradeoffs)
+#   - CUDA + cuDNN (optional, for GPU-accelerated Whisper transcription)
+
+faster-whisper>=1.0.0
+requests>=2.31.0
+python-dotenv>=1.0.0
+pytest>=8.0.0
+
+# SVG -> PNG rendering for dd-block visual overlays (REQUIRED).
+# cairosvg needs system Cairo libraries (fine on Linux/macOS; on Windows
+# it may need a Cairo/GTK runtime). If that's a problem on your machine,
+# install pymupdf instead and set OVERLAY_RENDER_BACKEND="pymupdf" in
+# src/config.py — self-contained wheel, no system libraries.
+cairosvg>=2.7.0
+# pymupdf>=1.24.0   # alternative SVG renderer (best Windows experience)
+
+# For potential future embedding-based asset matching (not yet used,
+# see asset_matcher.py "Upgrade to embedding-based matching")
+# sentence-transformers>=2.5.0
