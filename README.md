@@ -1,181 +1,399 @@
-# Onoma Editor — Autonomous Voice-Command Video Editor
+Onoma Editor — Autonomous Voice-Command Video Editor
 
-Built for content: voice + screen recordings, edited by
-speaking commands during the take instead of manual timeline editing.
+Onoma Editor is a post-recording video editing pipeline that lets creators control edits using spoken commands while recording.
 
-## Status
+Instead of manually editing a timeline, you record normally and speak simple commands such as cut and dd. After recording, Onoma processes the footage, removes marked sections, generates captions, and inserts visual assets based on what was said.
 
-**The full pipeline is now wired end-to-end and verified with a real
-ffmpeg render** (see `docs/BUILD_NOTES.md` for exactly what was tested
-and what still needs real-footage iteration). Cuts, karaoke captions,
-and dd-block visual overlays all composite in a single ffmpeg pass.
-An initial asset library of 12 reviewed candidate SVGs ships with the
-project — marked `status: candidate` until user approves them.
+Status
 
-The pieces that still need iteration against REAL footage (not
-synthetic tests): concept segmentation prompt quality, SVG generation
-quality from the local Gemma model, and caption styling to match
-Adnan's actual brand look.
+The full pipeline is wired end-to-end and has been verified with a real FFmpeg render.
 
-See `AGENT_PROMPT.md` for the original handoff brief and
-`docs/BUILD_NOTES.md` for the current build state (what an agent did,
-what's verified vs. assumed).
+The current pipeline supports:
 
-## Core idea
+Voice-command cuts
+Karaoke-style captions
+DD-block visual overlays
+SVG asset matching
+Generated SVG fallback assets
+One-pass FFmpeg compositing
 
-You record normally and speak commands inline:
+The included asset library currently contains 12 reviewed candidate SVGs. These are marked as candidate until they are approved for production use.
 
-- Say **"cut"** once to mark the start of a cut, **"cut"** again to mark
-  the end. Everything between (including both spoken "cut"s) is removed.
-- Say **"dd"** once to start an explanation block, **"dd"** again to end
-  it. Inside that block, the system reads what you're saying and matches
-  your explanation to visual assets (your own SVGs/animations, or
-  generates new ones in your style) and inserts them at the right
-  moments.
-- Captions are auto-generated from the transcript and burned in using a
-  style template you define once.
+Some areas still need iteration with real footage:
 
-No live processing. Everything runs as a **post-recording pass**:
-record → transcribe → parse commands → process cuts → process dd-blocks
-→ burn captions → render final video.
+Concept segmentation quality
+SVG generation quality using the local Gemma model
+Caption styling and branding
+Final asset-library selection
 
-## Pipeline stages
+See docs/BUILD_NOTES.md for the current verified build state and remaining work.
 
-```
+Core Idea
+
+Record normally and speak commands directly into the recording.
+
+cut
+
+Say "cut" once to mark the beginning of a section you want removed, then say "cut" again to mark the end.
+
+Everything between the two commands is removed, including the spoken cut commands themselves.
+
+dd
+
+Say "dd" to start an explanation block and say "dd" again to end it.
+
+During a DD block, Onoma analyzes what is being explained and determines which visual assets should appear at each point.
+
+It can:
+
+Segment the explanation into concepts.
+Match concepts to the local SVG asset library.
+Generate a new SVG when no suitable asset exists.
+Insert the resulting visuals at the appropriate timestamps.
+Captions
+
+Captions are generated automatically from the word-level transcript and rendered using a configurable style template.
+
+Processing Pipeline
 raw_footage.mp4
      |
      v
-[1] Whisper transcription (word-level timestamps)
+[1] Whisper transcription
+    Word-level timestamps
      |
      v
-[2] Command parser (finds cut/cut and dd/dd pairs + timestamps)
+[2] Command parser
+    Finds cut/cut and dd/dd pairs
      |
      v
-[3] Cut processor (builds ffmpeg trim list, removes spoken commands too)
+[3] Cut processor
+    Builds FFmpeg trim/concat plan
+    Removes spoken commands
      |
      v
-[4] DD-block processor (per block):
-       - segment transcript into concepts (LLM)
-       - match each concept to local SVG asset library
-       - fallback: generate new SVG in-style if no match
-       - reference search (Tavily) used only to inform generation,
-         never as a source asset
+[4] DD-block processor
+    - Segment transcript into concepts
+    - Match concepts to local SVG assets
+    - Generate SVG when no match exists
+    - Use reference search to inform generation
      |
      v
-[5] Caption generator (word-level timestamps -> styled ASS subtitles)
+[5] Caption generator
+    Word timestamps -> styled ASS subtitles
      |
      v
-[6] Render (ffmpeg: apply cuts, overlay dd-block visuals at their
-    timestamps, burn captions)
+[6] FFmpeg renderer
+    - Apply cuts
+    - Overlay DD visuals
+    - Burn captions
      |
      v
 final_video.mp4
-```
 
-## Directory layout
+Everything runs as a post-recording process:
 
-```
+Record → Transcribe → Parse → Cut → Process DD blocks → Generate captions → Render
+
+There is no requirement for live processing during the recording.
+
+Project Structure
 onoma-editor/
-  src/
-    transcribe.py          # Whisper wrapper, word-level timestamps
-    command_parser.py       # finds cut/cut, dd/dd pairs -> command list
-    cut_processor.py        # command list -> ffmpeg trim/concat plan
-    dd_processor.py         # dd-block -> concept segments -> asset plan
-    concept_segmenter.py    # LLM (Gemma via Ollama) segmentation + heuristic fallback
-    ollama_client.py        # shared Ollama call wrapper + retry-with-correction
-    asset_matcher.py        # matches concepts to local SVG library (keyword + fuzzy)
-    svg_generator.py        # generates new SVG in-style when no match (+ validation)
-    overlay_renderer.py     # SVG -> PNG + timed ffmpeg overlay filter chain
-    caption_generator.py    # transcript -> styled ASS subtitles (chunk or karaoke)
-    pipeline.py              # orchestrates all stages end to end
-    config.py                # all tunable settings in one place
-  assets/
-    svg/                      # asset library: 12 candidate SVGs + index.json
-  docs/
-    COMMAND_VOCABULARY.md    # exact spoken command spec
-    CAPTION_STYLE.md          # how to define your caption look (incl. karaoke)
-    ASSET_LIBRARY.md          # how to organize your SVG library
-    BUILD_NOTES.md            # current build state: verified vs. untested
-  tests/                      # 82 tests — run: cd src && python -m pytest ../tests/ -v
-  requirements.txt
-  AGENT_PROMPT.md            # long handoff brief for an agent to finish this
-```
+├── src/
+│   ├── transcribe.py
+│   ├── command_parser.py
+│   ├── cut_processor.py
+│   ├── dd_processor.py
+│   ├── concept_segmenter.py
+│   ├── ollama_client.py
+│   ├── asset_matcher.py
+│   ├── svg_generator.py
+│   ├── overlay_renderer.py
+│   ├── caption_generator.py
+│   ├── pipeline.py
+│   └── config.py
+│
+├── assets/
+│   └── svg/
+│       ├── index.json
+│       └── ...
+│
+├── docs/
+│   ├── COMMAND_VOCABULARY.md
+│   ├── CAPTION_STYLE.md
+│   ├── ASSET_LIBRARY.md
+│   └── BUILD_NOTES.md
+│
+├── tests/
+├── requirements.txt
+└── AGENT_PROMPT.md
+Source Modules
+Module	Purpose
+transcribe.py	Local faster-whisper transcription with word timestamps
+command_parser.py	Detects voice commands and builds command pairs
+cut_processor.py	Converts commands into FFmpeg keep/remove segments
+dd_processor.py	Processes DD blocks and creates visual plans
+concept_segmenter.py	Splits explanations into concepts using an LLM or heuristic fallback
+ollama_client.py	Shared Ollama client with retry and correction handling
+asset_matcher.py	Matches concepts against local SVG assets
+svg_generator.py	Generates SVG assets when no suitable match exists
+overlay_renderer.py	Converts SVG assets and creates timed FFmpeg overlays
+caption_generator.py	Generates chunked or karaoke-style ASS captions
+pipeline.py	Orchestrates the complete editing pipeline
+config.py	Central configuration and environment settings
+Current Capabilities
+Command Parser
+Detects cut/cut pairs
+Detects dd/dd pairs
+Handles unmatched commands
+Handles nested and overlapping blocks
+Handles near-duplicate command words
+Fully tested
+Cut Processor
 
-## What's fully working right now
+Converts parsed commands into an FFmpeg-ready keep/remove plan.
 
-- `command_parser.py` — parses cut/cut and dd/dd pairs from a Whisper
-  transcript, handles edge cases (unmatched commands, nested/overlapping
-  blocks, near-duplicate command words), fully tested.
-- `cut_processor.py` — turns a command list into an ffmpeg-ready
-  keep/remove segment list, including removing the spoken command
-  words themselves.
-- `caption_generator.py` — chunk mode AND karaoke (word-by-word
-  highlight) mode, pause-aware chunking, fully configurable via
-  `config.py`.
-- `overlay_renderer.py` — renders library SVGs to PNG (cairosvg /
-  PyMuPDF / rsvg-convert) and composites them as timed overlays,
-  with timestamps correctly remapped through cuts.
-- `ollama_client.py` — one shared Ollama wrapper with a
-  retry-with-correction loop (bad JSON / bad SVG gets re-prompted with
-  the reason it was rejected, up to `OLLAMA_MAX_REPAIR_ATTEMPTS`).
-- `concept_segmenter.py` — LLM segmentation via Ollama, PLUS a
-  deterministic heuristic fallback (pause-gap based) so a dead Ollama
-  degrades the pipeline instead of breaking it.
-- `asset_matcher.py` — keyword + fuzzy matching ("neurons" ~
-  "neuron", "sums" ~ "summation") with a tunable noise floor.
-- `pipeline.py` — the WHOLE thing renders in one ffmpeg pass: cuts,
-  captions, and dd-block overlays.
-- `transcribe.py` — thin wrapper around faster-whisper for local,
-  free, word-level transcription.
+The spoken command words are removed from the final video as well.
 
-## What still needs real-footage iteration
+Caption Generator
 
-- `concept_segmenter.py` prompt quality — tested against mocked
-  responses only; real Gemma output needs checking against where
-  Adnan would actually draw concept boundaries.
-- `svg_generator.py` — the prompt is tightened from a real 12-diagram
-  test batch, but local-Gemma SVG quality is untested (the candidate
-  library was generated by a stronger hosted model at build time).
-- Caption styling is still the generic placeholder — needs Adnan's
-  real brand fonts/colors (see `docs/CAPTION_STYLE.md`).
-- Asset library — 12 candidates shipped, all marked `status:
-  "candidate"`; needs Adnan's approval (see `docs/ASSET_LIBRARY.md`).
-- Tavily integration — wired as a reference-only lookup, not an asset
-  source. Needs your API key in `.env`.
+Supports:
 
-## Requirements
+Standard chunked captions
+Karaoke word-by-word highlighting
+Pause-aware caption grouping
+Configurable styling
+Overlay Renderer
 
-See `requirements.txt`. Summary: Python 3.10+, ffmpeg installed and on
-PATH, Ollama running locally with a Gemma 3 model pulled (`gemma3:12b`
-recommended — see config.py for the 4b/12b/27b tradeoff),
-faster-whisper, cairosvg (or PyMuPDF) for SVG rendering, and optionally
-a Tavily API key (free tier is fine, used sparingly).
+Supports:
 
-## Quick start (once dependencies are installed)
+SVG-to-PNG rendering
+Multiple rendering backends
+Timed visual overlays
+Timestamp remapping after cuts
+FFmpeg compositing
+Ollama Integration
 
-```bash
+Uses a shared Ollama wrapper with:
+
+JSON validation
+SVG validation
+Retry handling
+Automatic correction prompts
+Configurable repair attempts
+Concept Segmentation
+
+Uses an LLM to identify concepts inside DD blocks.
+
+A deterministic pause-based heuristic fallback is also available, allowing the pipeline to continue when the LLM is unavailable.
+
+Asset Matching
+
+Uses keyword and fuzzy matching to connect spoken concepts with existing assets.
+
+For example:
+
+neurons -> neuron
+sums    -> summation
+End-to-End Rendering
+
+The complete pipeline can produce a final video containing:
+
+Cuts
+Captions
+DD visual overlays
+
+These are composited through FFmpeg in a single render pass.
+
+What Still Needs Real-Footage Testing
+Concept Segmentation
+
+The segmentation system has been tested against mocked LLM responses.
+
+It still needs testing with real Gemma output to verify that concept boundaries match natural explanations.
+
+SVG Generation
+
+The SVG generation prompt has been refined using a test batch, but generation quality with the local Gemma model still needs real-world evaluation.
+
+Caption Styling
+
+The current caption styling is a generic placeholder.
+
+Production styling should be configured in:
+
+docs/CAPTION_STYLE.md
+Asset Library
+
+The included library contains 12 candidate SVG assets.
+
+They currently use:
+
+"status": "candidate"
+
+Assets should be reviewed and approved before being treated as production assets.
+
+See:
+
+docs/ASSET_LIBRARY.md
+Reference Search
+
+Tavily integration is available as a reference-only lookup.
+
+Search results are used to inform asset generation and are not directly used as source assets.
+
+A Tavily API key is required to enable this functionality.
+
+Requirements
+
+See requirements.txt for the complete dependency list.
+
+Required
+Python 3.10+
+FFmpeg installed and available on PATH
+Ollama
+A compatible Gemma model
+faster-whisper
+An SVG rendering backend
+Recommended
+
+For Ollama:
+
+gemma3:12b
+
+The appropriate model size depends on available hardware. Smaller models can be used for faster processing, while larger models generally provide better concept segmentation and SVG generation.
+
+Optional
+Tavily API key for reference searches
+Quick Start
+
+Install dependencies:
+
 pip install -r requirements.txt --break-system-packages
+
+Run the complete pipeline:
+
 python src/pipeline.py --input raw_footage.mp4 --output final_video.mp4
-```
+Configuration
 
-Useful env-var switches (no code edits needed):
+Most settings can be changed without modifying the source code.
 
-```powershell
-# PowerShell, Windows
-$env:ONOMA_CAPTION_MODE="karaoke"      # word-by-word highlight captions
-$env:ONOMA_SEGMENTATION_MODE="heuristic" # no-LLM fallback segmentation
-$env:ONOMA_X264_PRESET="veryfast"        # fast draft renders
+PowerShell
+$env:ONOMA_CAPTION_MODE="karaoke"
+$env:ONOMA_SEGMENTATION_MODE="heuristic"
+$env:ONOMA_X264_PRESET="veryfast"
+
 python src/pipeline.py --input raw.mp4 --output final.mp4
-```
+Available Examples
 
-## Windows notes
+Karaoke captions:
 
-- Everything is PowerShell-safe (subprocess lists, no bash-isms).
-- cairosvg needs a Cairo runtime on Windows — if `pip install cairosvg`
-  gives DLL errors, `pip install pymupdf` instead and set
-  `OVERLAY_RENDER_BACKEND = "pymupdf"` in config.py (self-contained
-  wheel, no system libraries). This path is implemented but was NOT
-  tested on a real Windows machine — verify on yours.
-- The caption filter path-escaping for Windows drive letters is
-  implemented (`build_ffmpeg_caption_filter`) but deserves a real
-  Windows ffmpeg smoke test.
+$env:ONOMA_CAPTION_MODE="karaoke"
+
+Disable LLM concept segmentation:
+
+$env:ONOMA_SEGMENTATION_MODE="heuristic"
+
+Use a faster FFmpeg preset for draft renders:
+
+$env:ONOMA_X264_PRESET="veryfast"
+Testing
+
+The project includes a test suite covering the core processing components.
+
+Run:
+
+cd src
+python -m pytest ../tests/ -v
+Windows Notes
+
+Onoma is designed to work with Windows and uses subprocess argument lists rather than shell-specific command strings.
+
+SVG Rendering
+
+CairoSVG may require a Cairo runtime on Windows.
+
+If CairoSVG produces DLL errors, PyMuPDF can be used as an alternative rendering backend:
+
+pip install pymupdf
+
+Then configure:
+
+OVERLAY_RENDER_BACKEND = "pymupdf"
+
+The PyMuPDF path is implemented but should be verified on the target Windows environment.
+
+FFmpeg Captions
+
+Windows drive-letter path escaping is handled by the caption filter builder.
+
+A real Windows FFmpeg smoke test is still recommended before production use.
+
+Documentation
+
+Additional documentation is available in the docs/ directory:
+
+COMMAND_VOCABULARY.md — Voice command specification
+CAPTION_STYLE.md — Caption styling and karaoke configuration
+ASSET_LIBRARY.md — SVG asset organization and approval
+BUILD_NOTES.md — Build verification and remaining work
+Architecture
+
+Onoma is intentionally designed as a post-production automation pipeline rather than a live editor.
+
+The goal is to make recording feel natural while moving the complexity of editing into an automated processing stage.
+
+                 ┌─────────────────┐
+                 │    Recording    │
+                 │  Voice + Video  │
+                 └────────┬────────┘
+                          │
+                          v
+                 ┌─────────────────┐
+                 │   Transcribe    │
+                 │    Whisper      │
+                 └────────┬────────┘
+                          │
+                          v
+                 ┌─────────────────┐
+                 │ Parse Commands  │
+                 │ cut / dd / ...  │
+                 └────────┬────────┘
+                          │
+              ┌───────────┴───────────┐
+              v                       v
+       ┌──────────────┐        ┌──────────────┐
+       │ Cut Processor│        │ DD Processor │
+       └──────┬───────┘        └──────┬───────┘
+              │                       │
+              │                ┌──────┴──────┐
+              │                │   Concept   │
+              │                │ Segmentation│
+              │                └──────┬──────┘
+              │                       │
+              │                ┌──────┴──────┐
+              │                │Asset Matcher│
+              │                └──────┬──────┘
+              │                       │
+              │                ┌──────┴──────┐
+              │                │SVG Generator│
+              │                └──────┬──────┘
+              │                       │
+              └───────────┬───────────┘
+                          v
+                 ┌─────────────────┐
+                 │    Captions     │
+                 └────────┬────────┘
+                          │
+                          v
+                 ┌─────────────────┐
+                 │     FFmpeg      │
+                 │ Final Composite │
+                 └────────┬────────┘
+                          │
+                          v
+                 ┌─────────────────┐
+                 │ final_video.mp4 │
+                 └─────────────────┘
+License
+
+Add the project's license here when one has been selected.
