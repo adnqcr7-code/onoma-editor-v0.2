@@ -1,6 +1,6 @@
 # Onoma Editor — Autonomous Voice-Command Video Editor
 
-Built for actual_dev / A9 content: voice + screen recordings, edited by
+Built for content: voice + screen recordings, edited by
 speaking commands during the take instead of manual timeline editing.
 
 ## Status
