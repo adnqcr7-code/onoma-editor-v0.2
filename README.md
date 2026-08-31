@@ -10,7 +10,7 @@ ffmpeg render** (see `docs/BUILD_NOTES.md` for exactly what was tested
 and what still needs real-footage iteration). Cuts, karaoke captions,
 and dd-block visual overlays all composite in a single ffmpeg pass.
 An initial asset library of 12 reviewed candidate SVGs ships with the
-project — marked `status: candidate` until Adnan approves them.
+project — marked `status: candidate` until user approves them.
 
 The pieces that still need iteration against REAL footage (not
 synthetic tests): concept segmentation prompt quality, SVG generation
