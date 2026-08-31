@@ -1,0 +1,119 @@
+{
+  "neuron_single.svg": {
+    "tags": [
+      "single neuron",
+      "neuron",
+      "activation"
+    ],
+    "description": "Single neuron with weighted inputs.",
+    "status": "candidate"
+  },
+  "neural_network_full.svg": {
+    "tags": [
+      "neural network",
+      "layers",
+      "network"
+    ],
+    "description": "Multi-layer neural network.",
+    "status": "candidate"
+  },
+  "gradient_descent.svg": {
+    "tags": [
+      "gradient descent",
+      "optimization",
+      "loss"
+    ],
+    "description": "Optimization moving toward a loss minimum.",
+    "status": "candidate"
+  },
+  "attention_mechanism.svg": {
+    "tags": [
+      "attention",
+      "self attention",
+      "qkv",
+      "tokens"
+    ],
+    "description": "Attention score flow between tokens.",
+    "status": "candidate"
+  },
+  "transformer_blocks.svg": {
+    "tags": [
+      "transformer",
+      "attention block",
+      "feed forward",
+      "residual"
+    ],
+    "description": "Transformer block overview.",
+    "status": "candidate"
+  },
+  "tokenization.svg": {
+    "tags": [
+      "tokenization",
+      "tokens",
+      "tokenizer",
+      "token ids"
+    ],
+    "description": "Text split into tokens.",
+    "status": "candidate"
+  },
+  "embeddings.svg": {
+    "tags": [
+      "embeddings",
+      "vectors",
+      "vector space",
+      "semantic"
+    ],
+    "description": "Tokens mapped into a vector space.",
+    "status": "candidate"
+  },
+  "api_request_response.svg": {
+    "tags": [
+      "api",
+      "request response",
+      "http request",
+      "endpoint"
+    ],
+    "description": "Client request and server response.",
+    "status": "candidate"
+  },
+  "client_server.svg": {
+    "tags": [
+      "client server",
+      "client",
+      "server",
+      "http"
+    ],
+    "description": "Client-server communication.",
+    "status": "candidate"
+  },
+  "git_branch.svg": {
+    "tags": [
+      "git",
+      "branch",
+      "merge",
+      "commit"
+    ],
+    "description": "Branching and merging history.",
+    "status": "candidate"
+  },
+  "recursion_stack.svg": {
+    "tags": [
+      "recursion",
+      "call stack",
+      "base case",
+      "function calls"
+    ],
+    "description": "Recursive calls on a stack.",
+    "status": "candidate"
+  },
+  "binary_search.svg": {
+    "tags": [
+      "binary search",
+      "sorted array",
+      "middle element",
+      "halving"
+    ],
+    "description": "Binary search halves a sorted range.",
+    "status": "candidate"
+  }
+}

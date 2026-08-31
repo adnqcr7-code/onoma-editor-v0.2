@@ -1,0 +1,11 @@
+<svg viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+<rect width="800" height="600" fill="#0a0a0a"/>
+<text x="400" y="80" text-anchor="middle" font-family="Arial, sans-serif" font-size="38" fill="#e0e0e0">Neuron Single</text>
+<rect x="120" y="180" width="560" height="220" rx="18" fill="none" stroke="#3ecf8e" stroke-width="3"/>
+<circle cx="250" cy="290" r="42" fill="none" stroke="#e0e0e0" stroke-width="3"/>
+<circle cx="550" cy="290" r="42" fill="none" stroke="#e0e0e0" stroke-width="3"/>
+<line x1="292" y1="290" x2="508" y2="290" stroke="#e0e0e0" stroke-width="3"/>
+<text x="250" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#e0e0e0">A</text>
+<text x="550" y="300" text-anchor="middle" font-family="Arial, sans-serif" font-size="30" fill="#3ecf8e">B</text>
+<text x="400" y="500" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#b0b0b0">Single neuron with weighted inputs.</text>
+</svg>
