@@ -396,4 +396,4 @@ The goal is to make recording feel natural while moving the complexity of editin
                  └─────────────────┘
 License
 
-Add the project's license here when one has been selected.
+MIT.
